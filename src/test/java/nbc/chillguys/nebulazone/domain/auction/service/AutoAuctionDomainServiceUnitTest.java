@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import nbc.chillguys.nebulazone.domain.auction.entity.Auction;
@@ -31,7 +30,7 @@ import nbc.chillguys.nebulazone.domain.user.entity.User;
 import nbc.chillguys.nebulazone.domain.user.entity.UserRole;
 
 @DisplayName("자동 경매 도메인 서비스 단위 테스트")
-@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
+@ExtendWith({MockitoExtension.class})
 class AutoAuctionDomainServiceUnitTest {
 
 	@Mock

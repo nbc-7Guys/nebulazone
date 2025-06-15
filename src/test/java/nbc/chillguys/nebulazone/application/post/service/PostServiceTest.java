@@ -20,9 +20,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import nbc.chillguys.nebulazone.application.post.dto.request.CreatePostRequest;
+import nbc.chillguys.nebulazone.application.post.dto.response.CreatePostResponse;
 import nbc.chillguys.nebulazone.application.post.dto.response.GetPostResponse;
 import nbc.chillguys.nebulazone.application.post.dto.response.SearchPostResponse;
+import nbc.chillguys.nebulazone.domain.auth.vo.AuthUser;
+import nbc.chillguys.nebulazone.domain.post.dto.PostCreateCommand;
 import nbc.chillguys.nebulazone.domain.post.dto.PostSearchCommand;
 import nbc.chillguys.nebulazone.domain.post.entity.Post;
 import nbc.chillguys.nebulazone.domain.post.entity.PostType;
@@ -32,6 +37,8 @@ import nbc.chillguys.nebulazone.domain.user.entity.Address;
 import nbc.chillguys.nebulazone.domain.user.entity.OAuthType;
 import nbc.chillguys.nebulazone.domain.user.entity.User;
 import nbc.chillguys.nebulazone.domain.user.entity.UserRole;
+import nbc.chillguys.nebulazone.domain.user.exception.UserErrorCode;
+import nbc.chillguys.nebulazone.domain.user.exception.UserException;
 import nbc.chillguys.nebulazone.domain.user.service.UserDomainService;
 import nbc.chillguys.nebulazone.infra.aws.s3.S3Service;
 
@@ -51,8 +58,8 @@ class PostServiceTest {
 	private PostService postService;
 
 	private User user;
-
 	private Post post;
+	private AuthUser authUser;
 
 	@BeforeEach
 	void init() {
@@ -88,6 +95,12 @@ class PostServiceTest {
 			.user(user)
 			.build();
 		ReflectionTestUtils.setField(post, "id", 1L);
+
+		authUser = AuthUser.builder()
+			.id(1L)
+			.email("test@test.com")
+			.roles(Set.of(UserRole.ROLE_USER))
+			.build();
 	}
 
 	@Nested
@@ -137,4 +150,97 @@ class PostServiceTest {
 			verify(postDomainService, times(1)).getActivePostWithUserAndImages(postId);
 		}
 	}
+
+	@Nested
+	@DisplayName("게시글 생성 테스트")
+	class CreatePostTest {
+
+		@Test
+		@DisplayName("게시글 생성 성공")
+		void success_createPost() {
+			// Given
+			CreatePostRequest request = new CreatePostRequest(
+				"테스트 게시글 제목",
+				"테스트 게시글 내용",
+				"free"
+			);
+			List<MultipartFile> files = List.of();
+
+			given(userDomainService.findActiveUserById(authUser.getId()))
+				.willReturn(user);
+			given(postDomainService.createPost(any(PostCreateCommand.class), any(List.class)))
+				.willReturn(post);
+
+			// When
+			CreatePostResponse result = postService.createPost(authUser, request, files);
+
+			// Then
+			assertThat(result.postId()).isEqualTo(1L);
+			assertThat(result.title()).isEqualTo("테스트 제목1");
+			assertThat(result.content()).isEqualTo("테스트 본문1");
+			assertThat(result.type()).isEqualTo(PostType.FREE);
+
+			verify(userDomainService, times(1)).findActiveUserById(authUser.getId());
+			verify(postDomainService, times(1)).createPost(any(PostCreateCommand.class), any(List.class));
+			verify(postDomainService, times(1)).savePostToEs(post);
+		}
+
+		@Test
+		@DisplayName("게시글 생성 성공 - 이미지 포함")
+		void success_createPost_withImages() {
+			// Given
+			CreatePostRequest request = new CreatePostRequest(
+				"테스트 게시글 제목",
+				"테스트 게시글 내용",
+				"free"
+			);
+
+			MultipartFile mockFile = mock(MultipartFile.class);
+			List<MultipartFile> files = List.of(mockFile);
+			String mockImageUrl = "https://test-image.jpg";
+
+			given(userDomainService.findActiveUserById(authUser.getId()))
+				.willReturn(user);
+			given(s3Service.generateUploadUrlAndUploadFile(mockFile))
+				.willReturn(mockImageUrl);
+			given(postDomainService.createPost(any(PostCreateCommand.class), any(List.class)))
+				.willReturn(post);
+
+			// When
+			CreatePostResponse result = postService.createPost(authUser, request, files);
+
+			// Then
+			assertThat(result.postId()).isEqualTo(1L);
+			assertThat(result.title()).isEqualTo("테스트 제목1");
+			assertThat(result.content()).isEqualTo("테스트 본문1");
+			assertThat(result.type()).isEqualTo(PostType.FREE);
+
+			verify(userDomainService, times(1)).findActiveUserById(authUser.getId());
+			verify(s3Service, times(1)).generateUploadUrlAndUploadFile(mockFile);
+			verify(postDomainService, times(1)).createPost(any(PostCreateCommand.class), any(List.class));
+		}
+
+		@Test
+		@DisplayName("게시글 생성 실패 - 존재하지 않는 사용자")
+		void fail_createPost_userNotFound() {
+			// Given
+			CreatePostRequest request = new CreatePostRequest(
+				"테스트 게시글 제목",
+				"테스트 게시글 내용",
+				"free"
+			);
+			List<MultipartFile> files = List.of();
+
+			given(userDomainService.findActiveUserById(authUser.getId()))
+				.willThrow(new UserException(UserErrorCode.USER_NOT_FOUND));
+
+			// When & Then
+			assertThatThrownBy(() -> postService.createPost(authUser, request, files))
+				.isInstanceOf(UserException.class)
+				.hasFieldOrPropertyWithValue("errorCode", UserErrorCode.USER_NOT_FOUND);
+
+			verify(userDomainService, times(1)).findActiveUserById(authUser.getId());
+		}
+	}
+
 }

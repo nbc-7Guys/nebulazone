@@ -42,6 +42,10 @@ public class AutoAuctionService {
 		Bid wonBid = bidDomainService.findHighBidByAuction(auction.getId());
 		autoAuctionDomainService.endAutoAuction(auctionId, wonBid);
 
+		if (wonBid == null) {
+			return;
+		}
+
 		TransactionCreateCommand txCreateCommand =
 			TransactionCreateCommand.of(wonBid.getUser(), product, product.getTxMethod().name(), wonBid.getPrice());
 
