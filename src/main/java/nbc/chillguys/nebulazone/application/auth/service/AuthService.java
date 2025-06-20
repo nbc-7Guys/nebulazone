@@ -11,6 +11,7 @@ import nbc.chillguys.nebulazone.application.auth.dto.response.SignInResponse;
 import nbc.chillguys.nebulazone.domain.user.entity.User;
 import nbc.chillguys.nebulazone.domain.user.service.UserDomainService;
 import nbc.chillguys.nebulazone.infra.security.JwtUtil;
+import nbc.chillguys.nebulazone.infra.security.dto.AuthTokens;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +25,9 @@ public class AuthService {
 
 		userDomainService.validPassword(signInRequest.password(), user.getPassword());
 
-		String accessToken = jwtUtil.generateAccessToken(user);
-		String refreshToken = jwtUtil.generateRefreshToken(user);
+		AuthTokens authTokens = jwtUtil.generateTokens(user);
 
-		return SignInResponse.of(accessToken, refreshToken);
+		return SignInResponse.of(authTokens.accessToken(), authTokens.refreshToken());
 	}
 
 	public void signOut() {

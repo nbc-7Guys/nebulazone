@@ -1,5 +1,7 @@
 package nbc.chillguys.nebulazone.infra.oauth.service;
 
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -8,77 +10,73 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.RequiredArgsConstructor;
 import nbc.chillguys.nebulazone.domain.user.dto.UserSignUpCommand;
+import nbc.chillguys.nebulazone.domain.user.entity.OAuthType;
 import nbc.chillguys.nebulazone.domain.user.entity.User;
-import nbc.chillguys.nebulazone.domain.user.exception.UserException;
 import nbc.chillguys.nebulazone.domain.user.service.UserDomainService;
 import nbc.chillguys.nebulazone.infra.oauth.dto.CustomOAuth2User;
-import nbc.chillguys.nebulazone.infra.oauth.dto.KakaoOAuth2UserInfo;
-import nbc.chillguys.nebulazone.infra.oauth.dto.NaverOAuth2UserInfo;
 import nbc.chillguys.nebulazone.infra.oauth.dto.OAuth2UserInfo;
-import nbc.chillguys.nebulazone.infra.oauth.exception.OAuthErrorCode;
-import nbc.chillguys.nebulazone.infra.oauth.exception.OAuthException;
 import nbc.chillguys.nebulazone.infra.security.JwtUtil;
+import nbc.chillguys.nebulazone.infra.security.dto.AuthTokens;
 
 @Service
-@RequiredArgsConstructor
 public class OAuthService extends DefaultOAuth2UserService {
 	private final UserDomainService userDomainService;
 	private final JwtUtil jwtUtil;
-	private final ObjectMapper objectMapper;
+	private final Map<OAuthType, OAuth2UserInfoService> userInfoServiceMap;
+
+	public OAuthService(UserDomainService userDomainService, JwtUtil jwtUtil,
+		List<OAuth2UserInfoService> userInfoServices) {
+		this.userDomainService = userDomainService;
+		this.jwtUtil = jwtUtil;
+		this.userInfoServiceMap = new EnumMap<>(OAuthType.class);
+		userInfoServices.forEach(service ->
+			userInfoServiceMap.put(service.getOAuthType(), service));
+	}
 
 	@Override
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
+		OAuth2UserInfoService userInfoService = userInfoServiceMap.get(OAuthType.from(registrationId));
+
 		OAuth2User oAuth2User = super.loadUser(userRequest);
 		Map<String, Object> attributes = oAuth2User.getAttributes();
-
-		OAuth2UserInfo oAuth2UserInfo = switch (registrationId) {
-			// localhost:8080/oauth2/authorization/kakao
-			case "kakao" -> objectMapper.convertValue(attributes, KakaoOAuth2UserInfo.class);
-
-			// localhost:8080/oauth2/authorization/naver
-			case "naver" -> objectMapper.convertValue(attributes, NaverOAuth2UserInfo.class);
-
-			default -> throw new OAuthException(OAuthErrorCode.UNSUPPORTED_OAUTH_PROVIDER);
-		};
+		OAuth2UserInfo oAuth2UserInfo = userInfoService.parse(attributes);
 
 		User user = getOrCreateUser(oAuth2UserInfo);
 
-		String accessToken = jwtUtil.generateAccessToken(user);
-		String refreshToken = jwtUtil.generateRefreshToken(user);
+		AuthTokens authTokens = jwtUtil.generateTokens(user);
 
-		return CustomOAuth2User.builder()
-			.userId(user.getId())
-			.roles(user.getRoles())
-			.attributes(attributes)
-			.nameAttributeKey(userRequest.getClientRegistration()
-				.getProviderDetails()
-				.getUserInfoEndpoint()
-				.getUserNameAttributeName())
-			.accessToken(accessToken)
-			.refreshToken(refreshToken)
-			.build();
+		return buildCustomUser(user, attributes, authTokens, userInfoService);
 	}
 
 	private User getOrCreateUser(OAuth2UserInfo oAuth2UserInfo) {
-		User user;
-
-		try {
-			userDomainService.validEmail(oAuth2UserInfo.getEmail());
-		} catch (UserException e) {
+		if (userDomainService.validEmailWithOAuthType(oAuth2UserInfo.getEmail(), oAuth2UserInfo.getOAuthType())) {
 			return userDomainService.findActiveUserByEmailAndOAuthType(oAuth2UserInfo.getEmail(),
 				oAuth2UserInfo.getOAuthType());
 		}
 
+		userDomainService.validEmail(oAuth2UserInfo.getEmail());
+
 		userDomainService.validNickname(oAuth2UserInfo.getNickname());
 
-		user = userDomainService.createUser(UserSignUpCommand.from(oAuth2UserInfo));
+		return userDomainService.createUser(UserSignUpCommand.from(oAuth2UserInfo));
+	}
 
-		return user;
+	private CustomOAuth2User buildCustomUser(
+		User user,
+		Map<String, Object> attributes,
+		AuthTokens tokens,
+		OAuth2UserInfoService userInfoService
+	) {
+		return CustomOAuth2User.builder()
+			.userId(user.getId())
+			.roles(user.getRoles())
+			.attributes(attributes)
+			.nameAttributeKey(userInfoService.getUserNameAttributeKey())
+			.accessToken(tokens.accessToken())
+			.refreshToken(tokens.refreshToken())
+			.build();
 	}
 
 }

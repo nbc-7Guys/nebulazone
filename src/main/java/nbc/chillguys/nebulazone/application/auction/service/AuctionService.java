@@ -69,6 +69,8 @@ public class AuctionService {
 		Product product = productDomainService.findActiveProductById(request.productId());
 		product.purchase();
 
+		productDomainService.saveProductToEs(product);
+
 		ManualEndAuctionInfo auctionInfo = auctionDomainService.manualEndAuction(user, wonBid, auctionId);
 
 		List<Bid> bidList = bidDomainService.findBidsByAuctionIdAndStatusBid(auctionId);

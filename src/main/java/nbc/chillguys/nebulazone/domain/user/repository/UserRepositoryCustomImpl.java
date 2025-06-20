@@ -67,4 +67,16 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
 			).fetchOne());
 	}
 
+	@Override
+	public boolean existsByEmailAndOAuthType(String email, OAuthType oAuthType) {
+		QUser user = QUser.user;
+
+		return jpaQueryFactory.selectFrom(user)
+			.where(
+				user.email.eq(email),
+				user.oAuthType.eq(oAuthType)
+			)
+			.fetchOne() != null;
+	}
+
 }

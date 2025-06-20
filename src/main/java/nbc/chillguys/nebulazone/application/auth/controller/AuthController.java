@@ -31,8 +31,7 @@ public class AuthController {
 
 		Cookie cookie = new Cookie("Refresh_Token", response.refreshToken());
 		cookie.setHttpOnly(true);
-		// https 통신이 아니기 때문에 임시 주석
-		// cookie.setSecure(true);
+		cookie.setSecure(true);
 		cookie.setPath("/");
 		cookie.setMaxAge(2 * 24 * 60 * 60);
 
@@ -47,8 +46,7 @@ public class AuthController {
 
 		Cookie cookie = new Cookie("Refresh_Token", null);
 		cookie.setHttpOnly(true);
-		// https 통신이 아니기 때문에 임시 주석
-		// cookie.setSecure(true);
+		cookie.setSecure(true);
 		cookie.setPath("/");
 		cookie.setMaxAge(0);
 

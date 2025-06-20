@@ -42,6 +42,8 @@ public class AutoAuctionService {
 		Product product = productDomainService.findActiveProductById(productId);
 		product.purchase();
 
+		productDomainService.saveProductToEs(product);
+
 		Bid wonBid = bidDomainService.findHighBidByAuction(auction.getId());
 		autoAuctionDomainService.endAutoAuction(auctionId, wonBid);
 

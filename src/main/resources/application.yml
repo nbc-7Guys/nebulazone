@@ -21,6 +21,7 @@ spring:
         show_sql: false
         format_sql: true
         use_sql_comments: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
   data:
     redis:
@@ -79,7 +80,7 @@ spring:
             user-name-attribute: response
 
   elasticsearch:
-    uris: ${ES_URI:http://localhost:9200}
+    uris: ${ES_URI}
 
 jwt:
   secret:
@@ -112,3 +113,6 @@ management:
 
 toss:
   secret-key: ${TOSS_SECRET_KEY}
+
+frontend:
+  url: ${FRONT_END_URL}

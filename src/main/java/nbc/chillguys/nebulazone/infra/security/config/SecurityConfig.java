@@ -5,8 +5,6 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -112,7 +110,8 @@ public class SecurityConfig {
 			"https://nebulazone-fe.vercel.app",
 			"https://nebulazone.store",
 			"https://www.nebulazone.store",
-			"https://api.nebulazone.store"
+			"https://api2.nebulazone.store",
+			"http://api2.nebulazone.store"
 		));
 		configuration.setAllowedMethods(List.of(
 			"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
@@ -131,10 +130,5 @@ public class SecurityConfig {
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
 		return source;
-	}
-
-	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration auth) throws Exception {
-		return auth.getAuthenticationManager();
 	}
 }

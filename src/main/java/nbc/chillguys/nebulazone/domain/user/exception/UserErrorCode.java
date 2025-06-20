@@ -17,6 +17,7 @@ public enum UserErrorCode implements ErrorCode {
 	ALREADY_EXISTS_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 이메일이 있습니다."),
 	ALREADY_EXISTS_NICKNAME(HttpStatus.CONFLICT, "이미 존재하는 닉네임이 있습니다."),
 	ALREADY_EXISTS_PHONE(HttpStatus.CONFLICT, "이미 존재하는 핸드폰번호가 있습니다."),
+	UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 로그인 제공자입니다."),
 	INSUFFICIENT_BALANCE(HttpStatus.BAD_REQUEST, "포인트가 부족합니다.");
 
 	private final HttpStatus status;

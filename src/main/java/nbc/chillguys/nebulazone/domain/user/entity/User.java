@@ -56,9 +56,10 @@ public class User extends BaseEntity {
 	private Long point;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
+	@Column(name = "oauth_type", nullable = false)
 	private OAuthType oAuthType;
 
+	@Column(name = "oauth_id")
 	private String oAuthId;
 
 	@Enumerated(EnumType.STRING)

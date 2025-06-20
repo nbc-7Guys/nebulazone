@@ -16,58 +16,16 @@ jobs:
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Build and Push Docker Image
-        run: |
-          docker build -t shlee054/nebulazone-app:latest -f docker/Dockerfile .
-          docker push shlee054/nebulazone-app:latest
-
-      - name: Create .env file
-        run: |
-          mkdir -p docker
-          echo "SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}" >> docker/.env
-          echo "SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}" >> docker/.env
-          echo "SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}" >> docker/.env
-          echo "SPRING_DATA_REDIS_HOST=${{ secrets.REDIS_HOST }}" >> docker/.env
-          echo "SPRING_DATA_REDIS_PORT=${{ secrets.REDIS_PORT }}" >> docker/.env
-          echo "SPRING_DATA_REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} " >> docker/.env
-          echo "SPRING_CLOUD_AWS_CREDENTIALS_ACCESS-KEY=${{ secrets.AWS_ACCESS_KEY }}" >> docker/.env
-          echo "SPRING_CLOUD_AWS_CREDENTIALS_SECRET-KEY=${{ secrets.AWS_SECRET_KEY }}" >> docker/.env
-          echo "SPRING_CLOUD_AWS_S3_BUCKET=${{ secrets.AWS_S3_BUCKET }}" >> docker/.env
-          echo "SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT-ID=${{ secrets.KAKAO_API_KEY }}" >> docker/.env
-          echo "SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_NAVER_CLIENT-ID=${{ secrets.NAVER_API_KEY }}" >> docker/.env
-          echo "SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_NAVER_CLIENT-SECRET=${{ secrets.NAVER_API_SECRET_KEY }}" >> docker/.env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> docker/.env
-          echo "ES_URI=${{ secrets.ES_URI }}" >> docker/.env
-          echo "TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}" >> docker/.env
-          echo "TOSS_CLIENT_KEY=${{ secrets.TOSS_CLIENT_KEY }}" >> docker/.env
-          chmod 644 docker/.env
-
-      - name: Fill filebeat config
-        run: envsubst < filebeat/filebeat-prod.yml.template > filebeat/filebeat-prod.yml
-        env:
-          LOGSTASH_HOSTS: ${{ secrets.LOGSTASH_HOSTS }}
-          FILEBEAT_SERVICE: ${{ secrets.FILEBEAT_SERVICE_1 }}
-
-      - name: Copy files to GCP VM
-        uses: appleboy/scp-action@v0.1.7
+      - name: Extract Docker image metadata
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          host: ${{ secrets.GCP_VM_HOST_1 }}
-          username: ubuntu
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          source: "docker/docker-compose.yml,docker/.env,filebeat/filebeat-prod.yml"
-          target: "~/app"
-          overwrite: true
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+          images: shlee054/nebulazone-app
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
         with:
-          host: ${{ secrets.GCP_VM_HOST_1 }}
-          username: ubuntu
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          script: |
-            set -e
-            cd /home/ubuntu/app/docker
-            docker compose pull
-            docker compose down --remove-orphans || true
-            docker compose up -d
-            docker ps
+          context: .
+          push: true
+          file: docker/Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

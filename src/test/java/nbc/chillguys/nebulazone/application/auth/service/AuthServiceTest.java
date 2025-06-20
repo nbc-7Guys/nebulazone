@@ -26,6 +26,7 @@ import nbc.chillguys.nebulazone.domain.user.entity.User;
 import nbc.chillguys.nebulazone.domain.user.entity.UserRole;
 import nbc.chillguys.nebulazone.domain.user.service.UserDomainService;
 import nbc.chillguys.nebulazone.infra.security.JwtUtil;
+import nbc.chillguys.nebulazone.infra.security.dto.AuthTokens;
 
 @DisplayName("auth 어플리케이션 서비스 단위 테스트")
 @ExtendWith(MockitoExtension.class)
@@ -68,13 +69,12 @@ class AuthServiceTest {
 	void success_signIn() {
 		// Given
 		SignInRequest request = new SignInRequest("test@test.com", "encodedPassword1!");
+		AuthTokens authTokens = new AuthTokens("test_access_token", "test_refresh_token");
 
 		given(userDomainService.findActiveUserByEmail(anyString()))
 			.willReturn(user);
-		given(jwtUtil.generateAccessToken(any(User.class)))
-			.willReturn("test_access_token");
-		given(jwtUtil.generateRefreshToken(any(User.class)))
-			.willReturn("test_refresh_token");
+		given(jwtUtil.generateTokens(any(User.class)))
+			.willReturn(authTokens);
 
 		// When
 		SignInResponse response = authService.signIn(request);
@@ -82,8 +82,7 @@ class AuthServiceTest {
 		// Then
 		verify(userDomainService, times(1)).findActiveUserByEmail(anyString());
 		verify(userDomainService, times(1)).validPassword(anyString(), anyString());
-		verify(jwtUtil, times(1)).generateAccessToken(any(User.class));
-		verify(jwtUtil, times(1)).generateRefreshToken(any(User.class));
+		verify(jwtUtil, times(1)).generateTokens(any(User.class));
 
 		assertThat(response)
 			.isNotNull();

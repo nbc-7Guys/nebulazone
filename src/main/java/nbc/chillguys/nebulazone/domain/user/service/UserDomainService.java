@@ -237,4 +237,15 @@ public class UserDomainService {
 		user.addPoint(command.point());
 	}
 
+	/**
+	 * 이메일과 유저 타입으로 검사
+	 * @param email 이메일
+	 * @param oAuthType 유저 타입 (DOMAIN, KAKAO, NAVER)
+	 * @return boolean
+	 * @author 이승현
+	 */
+	public boolean validEmailWithOAuthType(String email, OAuthType oAuthType) {
+		return userRepository.existsByEmailAndOAuthType(email, oAuthType);
+	}
+
 }

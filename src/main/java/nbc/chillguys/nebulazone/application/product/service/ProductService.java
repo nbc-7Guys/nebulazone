@@ -164,6 +164,8 @@ public class ProductService {
 		ProductPurchaseCommand command = ProductPurchaseCommand.of(user, catalog, productId);
 		productDomainService.purchaseProduct(command);
 
+		productDomainService.saveProductToEs(product);
+
 		TransactionCreateCommand buyerTxCreateCommand
 			= TransactionCreateCommand.of(user, UserType.BUYER, product, product.getTxMethod().name(),
 			product.getPrice());

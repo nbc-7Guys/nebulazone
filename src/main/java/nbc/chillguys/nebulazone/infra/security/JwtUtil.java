@@ -18,6 +18,7 @@ import nbc.chillguys.nebulazone.domain.user.entity.User;
 import nbc.chillguys.nebulazone.infra.redis.service.UserCacheService;
 import nbc.chillguys.nebulazone.infra.security.constant.JwtConstants;
 import nbc.chillguys.nebulazone.infra.security.constant.TokenExpiredConstant;
+import nbc.chillguys.nebulazone.infra.security.dto.AuthTokens;
 import nbc.chillguys.nebulazone.infra.security.exception.JwtTokenErrorCode;
 import nbc.chillguys.nebulazone.infra.security.exception.JwtTokenException;
 import nbc.chillguys.nebulazone.infra.security.filter.exception.JwtFilterErrorCode;
@@ -60,6 +61,13 @@ public class JwtUtil {
 			.expiration(tokenExpiredConstant.getRefreshTokenExpiredDate(now))
 			.signWith(secretKey, Jwts.SIG.HS256)
 			.compact();
+	}
+
+	public AuthTokens generateTokens(User user) {
+		String accessToken = generateAccessToken(user);
+		String refreshToken = generateRefreshToken(user);
+
+		return AuthTokens.of(accessToken, refreshToken);
 	}
 
 	public String regenerateAccessToken(String refreshToken) {
