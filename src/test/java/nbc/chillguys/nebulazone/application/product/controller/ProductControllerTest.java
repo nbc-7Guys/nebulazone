@@ -32,9 +32,10 @@ import nbc.chillguys.nebulazone.application.product.service.ProductService;
 import nbc.chillguys.nebulazone.config.TestSecurityConfig;
 import nbc.chillguys.nebulazone.domain.product.entity.ProductEndTime;
 import nbc.chillguys.nebulazone.domain.product.entity.ProductTxMethod;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 import nbc.chillguys.nebulazone.support.mockuser.WithCustomMockUser;
 
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 @DisplayName("상품 컨트롤러 단위 테스트")
 @WebMvcTest(ProductController.class)
 class ProductControllerTest {

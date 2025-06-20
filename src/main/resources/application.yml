@@ -113,7 +113,6 @@ management:
 
 toss:
   secret-key: ${TOSS_SECRET_KEY}
-  client-key: ${TOSS_CLIENT_KEY}
 
 frontend:
   url: ${FRONT_END_URL}

@@ -19,9 +19,10 @@ import nbc.chillguys.nebulazone.application.review.dto.response.ReviewResponse;
 import nbc.chillguys.nebulazone.application.review.service.ReviewService;
 import nbc.chillguys.nebulazone.common.response.CommonPageResponse;
 import nbc.chillguys.nebulazone.config.TestSecurityConfig;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 
 @WebMvcTest(ReviewController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 @DisplayName("리뷰 컨트롤러 테스트")
 class ReviewControllerTest {
 

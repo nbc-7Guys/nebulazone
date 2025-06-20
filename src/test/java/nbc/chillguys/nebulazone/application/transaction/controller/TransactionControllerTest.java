@@ -30,11 +30,12 @@ import nbc.chillguys.nebulazone.config.TestSecurityConfig;
 import nbc.chillguys.nebulazone.domain.transaction.entity.TransactionMethod;
 import nbc.chillguys.nebulazone.domain.transaction.entity.UserType;
 import nbc.chillguys.nebulazone.domain.user.entity.User;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 import nbc.chillguys.nebulazone.support.mockuser.WithCustomMockUser;
 
 @DisplayName("거래 내역 컨트롤러 단위 테스트")
 @WebMvcTest(TransactionController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 class TransactionControllerTest {
 
 	@Autowired

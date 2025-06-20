@@ -32,11 +32,12 @@ import nbc.chillguys.nebulazone.application.bid.service.BidService;
 import nbc.chillguys.nebulazone.common.response.CommonPageResponse;
 import nbc.chillguys.nebulazone.config.TestSecurityConfig;
 import nbc.chillguys.nebulazone.domain.user.entity.User;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 import nbc.chillguys.nebulazone.support.mockuser.WithCustomMockUser;
 
 @DisplayName("입찰 컨트롤러 단위 테스트")
 @WebMvcTest(BidController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 class BidControllerTest {
 
 	@Autowired

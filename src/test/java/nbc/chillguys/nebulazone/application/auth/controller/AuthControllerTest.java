@@ -24,10 +24,11 @@ import nbc.chillguys.nebulazone.application.auth.dto.response.ReissueResponse;
 import nbc.chillguys.nebulazone.application.auth.dto.response.SignInResponse;
 import nbc.chillguys.nebulazone.application.auth.service.AuthService;
 import nbc.chillguys.nebulazone.config.TestSecurityConfig;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 import nbc.chillguys.nebulazone.support.mockuser.WithCustomMockUser;
 
 @DisplayName("auth 컨트롤러 단위 테스트")
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 @WebMvcTest(AuthController.class)
 class AuthControllerTest {
 	@MockitoBean

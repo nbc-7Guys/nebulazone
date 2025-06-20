@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nbc.chillguys.nebulazone.infra.oauth.handler.OAuth2SuccessHandler;
 import nbc.chillguys.nebulazone.infra.oauth.service.OAuthService;
 import nbc.chillguys.nebulazone.infra.security.JwtUtil;
+import nbc.chillguys.nebulazone.infra.security.filter.BanCheckFilter;
 import nbc.chillguys.nebulazone.infra.security.filter.CustomAuthenticationEntryPoint;
 import nbc.chillguys.nebulazone.infra.security.filter.ExceptionLoggingFilter;
 import nbc.chillguys.nebulazone.infra.security.filter.JwtAuthenticationFilter;
@@ -32,14 +33,17 @@ public class SecurityConfig {
 	private final OAuthService oAuthService;
 	private final OAuth2SuccessHandler oAuth2SuccessHandler;
 	private final ExceptionLoggingFilter exceptionLoggingFilter;
+	private final BanCheckFilter banCheckFilter;
 
 	public SecurityConfig(ObjectMapper objectMapper, JwtUtil jwtUtil, OAuthService oAuthService,
-		OAuth2SuccessHandler oAuth2SuccessHandler, ExceptionLoggingFilter exceptionLoggingFilter) {
+		OAuth2SuccessHandler oAuth2SuccessHandler, ExceptionLoggingFilter exceptionLoggingFilter,
+		BanCheckFilter banCheckFilter) {
 		this.entryPoint = new CustomAuthenticationEntryPoint(objectMapper);
 		this.jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtUtil, entryPoint);
 		this.oAuthService = oAuthService;
 		this.oAuth2SuccessHandler = oAuth2SuccessHandler;
 		this.exceptionLoggingFilter = exceptionLoggingFilter;
+		this.banCheckFilter = banCheckFilter;
 	}
 
 	@Bean
@@ -63,7 +67,8 @@ public class SecurityConfig {
 					"/ws/**",
 					"/ws",
 					"/chat/**",
-					"/topic/**"
+					"/topic/**",
+					"/internal/bans"
 				).permitAll()
 				.requestMatchers(
 					"/auth/signin",
@@ -89,8 +94,9 @@ public class SecurityConfig {
 			)
 			.exceptionHandling(exception ->
 				exception.authenticationEntryPoint(entryPoint))
-			.addFilterBefore(exceptionLoggingFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(banCheckFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(exceptionLoggingFilter, UsernamePasswordAuthenticationFilter.class)
 			.build();
 	}
 

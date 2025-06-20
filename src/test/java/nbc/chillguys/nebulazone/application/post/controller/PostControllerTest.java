@@ -32,9 +32,10 @@ import nbc.chillguys.nebulazone.application.post.dto.response.SearchPostResponse
 import nbc.chillguys.nebulazone.application.post.service.PostService;
 import nbc.chillguys.nebulazone.config.TestSecurityConfig;
 import nbc.chillguys.nebulazone.domain.post.entity.PostType;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 import nbc.chillguys.nebulazone.support.mockuser.WithCustomMockUser;
 
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 @DisplayName("게시글 컨트롤러 단위 테스트")
 @WebMvcTest(PostController.class)
 class PostControllerTest {

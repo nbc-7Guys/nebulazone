@@ -32,10 +32,11 @@ import nbc.chillguys.nebulazone.application.user.dto.response.WithdrawUserRespon
 import nbc.chillguys.nebulazone.application.user.service.UserService;
 import nbc.chillguys.nebulazone.config.TestSecurityConfig;
 import nbc.chillguys.nebulazone.domain.user.entity.OAuthType;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 import nbc.chillguys.nebulazone.support.mockuser.WithCustomMockUser;
 
 @DisplayName("유저 컨트롤러 단위 테스트")
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 	@MockitoBean

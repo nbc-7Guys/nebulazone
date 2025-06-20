@@ -27,8 +27,9 @@ import nbc.chillguys.nebulazone.application.catalog.service.CatalogService;
 import nbc.chillguys.nebulazone.application.review.dto.response.ReviewResponse;
 import nbc.chillguys.nebulazone.config.TestSecurityConfig;
 import nbc.chillguys.nebulazone.domain.catalog.entity.CatalogType;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 @DisplayName("카탈로그 컨트롤러 단위 테스트")
 @WebMvcTest(CatalogController.class)
 class CatalogControllerTest {

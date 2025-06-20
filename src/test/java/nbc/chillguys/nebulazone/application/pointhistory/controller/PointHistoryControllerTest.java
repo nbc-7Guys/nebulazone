@@ -33,10 +33,11 @@ import nbc.chillguys.nebulazone.config.TestSecurityConfig;
 import nbc.chillguys.nebulazone.domain.pointhistory.entity.PointHistoryStatus;
 import nbc.chillguys.nebulazone.domain.pointhistory.entity.PointHistoryType;
 import nbc.chillguys.nebulazone.domain.user.entity.User;
+import nbc.chillguys.nebulazone.support.MockMvc.TestMockConfig;
 import nbc.chillguys.nebulazone.support.mockuser.WithCustomMockUser;
 
 @DisplayName("포인트 히스토리 컨트롤러 테스트")
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestMockConfig.class})
 @WebMvcTest(PointHistoryController.class)
 class PointHistoryControllerTest {
 
